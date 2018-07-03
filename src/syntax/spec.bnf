@@ -1,0 +1,86 @@
+:start ::= statements
+statements ::= statement+
+statement ::= <start rule>
+  | <priority rule>
+  | <quantified rule>
+  | <discard rule>
+  | <empty rule>
+
+<start rule> ::= ':start' <op declare bnf> <single symbol> action => start_rule
+<priority rule> ::= lhs <op declare> priorities action => priority_rule
+<quantified rule> ::= lhs <op declare> <single symbol> quantifier <adverb list> action => quantified_rule
+<discard rule> ::= ':discard' <op declare match> <single symbol> action => discard_rule
+<empty rule> ::= lhs <op declare> <adverb list> action => empty_rule
+
+priorities ::= alternatives+
+    separator => '||' proper => 1
+alternatives ::= alternative+
+    separator => '|' proper => 1
+alternative ::= rhs <adverb list>
+
+<adverb list> ::= <adverb item>* action => adverb_list
+<adverb item> ::= <separator specification>
+  | <proper specification>
+  | <rank specification>
+  | <pause specification>
+  | <event specification>
+  | <color specification>
+  | <bgcolor specification>
+
+<separator specification> ::= 'separator' '=>' <single symbol>
+  | 'separator' '=>' <single quoted string>
+<proper specification> ::= 'proper' '=>' boolean
+<rank specification> ::= 'rank' '=>' digit
+<pause specification> ::= 'pause' '=>' <before or after>
+<event specification> ::= 'event' '=>' <name>
+<color specification> ::= 'color' '=>' color 
+<bgcolor specification> ::= 'bgcolor' '=>' color 
+
+color ::= <hex color>
+  | <css color> action => css_color
+<hex color> ~ /#[a-fA-F0-9]{6}/
+<css color> ~ [\w]+
+
+lhs ::= symbol
+rhs ::= <rhs primary>+
+<rhs primary> ::= <single symbol>
+  | <single quoted string>
+  | <parenthesized rhs primary list>
+<parenthesized rhs primary list> ::= '(' <rhs list> ')'
+<rhs list> ::= <rhs primary>+
+
+<single symbol> ::= symbol
+  | <character class> action => create_character_class
+  | <regex> action => create_regex
+symbol ::= <symbol name> action => create_symbol
+<symbol name> ::= <bare name>
+  | <bracketed name>
+
+:discard ~ whitespace
+whitespace ~ [\s]+
+
+<op declare> ::= <op declare bnf> | <op declare match>
+
+<op declare bnf> ~ '::='
+<op declare match> ~ '~'
+quantifier ::= '*' | '+'
+
+<name> ~ [\w]+
+boolean ~ [01]
+digit ~ [\d]+
+<before or after> ::= 'before' | 'after'
+
+<bare name> ~ [\w]+
+<bracketed name> ~ '<' <bracketed name string> '>'
+<bracketed name string> ~ [\s\w]+
+
+<single quoted string> ::= <quoted string> action => create_literal
+<quoted string> ~ /'[^'\x0A\x0B\x0C\x0D\x{0085}\x{2028}\x{2029}]+'/
+
+<regex> ~ /\/.*\/[imx]{0,3}/
+<character class> ~ '[' <cc elements> ']'
+<cc elements> ~ [^\x5d\x0A\x0B\x0C\x0D\x{0085}\x{2028}\x{2029}]+
+
+# Allow comments
+:discard ~ <hash comment>
+<hash comment> ~ /#[^\n]*/
