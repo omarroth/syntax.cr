@@ -3,20 +3,18 @@ require "marpa"
 
 module Syntax
   class Highlighter
-    def highlight(input : String, input_grammar : String)
+    def highlight(input : String, input_grammar : String, forgiving : Bool = true)
       parser = Marpa::Parser.new
 
       spec = Marpa::Builder.new
       spec = build_spec(spec)
-      # spec = File.read("src/syntax/spec.bnf")
-      # meta_grammar = parser.compile(meta_grammar)
 
       grammar = Grammar.new
       parser.parse(input_grammar, spec, actions: grammar)
       rules = grammar.rules
 
       actions = Actions.new(rules)
-      events = Events.new(input)
+      events = Events.new(forgiving)
       stack = parser.parse(input, grammar, actions: actions, events: events)
       stack = stack.as(Array).flatten
 
@@ -32,19 +30,21 @@ module Syntax
   end
 
   class Events < Marpa::Events
-    property input
+    property forgiving
 
-    def initialize(input : String)
-      @input = input
+    def initialize(forgiving = true)
+      @forgiving = forgiving
     end
 
     def default(context)
+      if @forgiving
       if context.matches.empty? && context.discards.empty?
         context.expected.each do |expected|
           context.matches << {"", expected}
         end
       end
     end
+  end
   end
 
   class Actions < Marpa::Actions
