@@ -66,7 +66,7 @@ module Syntax
       color = rule["color"]?
       color ||= "inherit"
 
-      span = %(<span class="code" style="background-color:#{bgcolor}; color:#{color}">)
+      span = %(<span style="background-color:#{bgcolor}; color:#{color}">)
       end_span = "</span>"
 
       body = context.as(Array)
