@@ -3,7 +3,10 @@ require "marpa"
 
 module Syntax
   class Highlighter
-    def highlight(input : String, input_grammar : String, forgiving : Bool = true)
+    # Given `input` and `input_grammar`, parse input and then style with colors
+    # specified in `input_grammar`. If the input does not fully conform to the given grammar,
+    # `forgiving` can be specified to attempt to correct the given input.
+    def highlight(input : String, input_grammar : String, forgiving : Bool = false)
       parser = Marpa::Parser.new
 
       spec = Marpa::Builder.new
@@ -38,13 +41,13 @@ module Syntax
 
     def default(context)
       if @forgiving
-      if context.matches.empty? && context.discards.empty?
-        context.expected.each do |expected|
-          context.matches << {"", expected}
+        if context.matches.empty? && context.discards.empty?
+          context.expected.each do |expected|
+            context.matches << {"", expected}
+          end
         end
       end
     end
-  end
   end
 
   class Actions < Marpa::Actions
@@ -259,3 +262,47 @@ module Syntax
     end
   end
 end
+
+grammar = <<-'END_BNF'
+# Adapted from https://gist.github.com/pstuifzand/4447349
+:start ::= json
+json ::= object | array
+
+object ::= '{' members '}'
+members ::= pair* proper => 1 separator => comma
+pair ::= string ':' value
+
+value ::= string
+  | object
+  | number
+  | array
+  | true
+  | false
+  | null
+
+array ::= '[' elements ']' bgcolor => green
+elements ::= value* proper => 1 separator => comma
+
+comma ~ ','
+
+string ::= '"' in_string '"' color => tan
+in_string ~ /([^"\\]|\\[\"\\\/bftnrt]|\\u[a-fA-F0-9]{4})*/
+number ~ /-?([\d]+)(\.\d+)?([eE][+-]?\d+)?/
+
+true ~ 'true'
+false ~ 'false'
+null ~ 'null'
+
+:discard ~ whitespace
+whitespace ~ [\s]+
+END_BNF
+input = <<-'END_INPUT'
+[1,"abc\nd\"ef\ufea1",true,
+"",-2.3,null,[],[1,2,3],{},{"a":1,"b":2}]
+END_INPUT
+
+highlighter = Syntax::Highlighter.new
+output = highlighter.highlight(input, grammar)
+puts output
+File.write("output.html", "<pre>" + output + "</pre>")
+# puts highlighter.stack
