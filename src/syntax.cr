@@ -57,6 +57,22 @@ module Syntax
       @rules = rules
     end
 
+    def default(context)
+      body = context.dup.as(Array)
+      context.clear
+
+      body.each do |item|
+        case item
+        when String
+          context << HTML.escape(item)
+        else
+          context << item
+        end
+      end
+
+      context
+    end
+
     def perform_color(context, rule_id)
       rule = @rules[rule_id]
 
@@ -76,6 +92,7 @@ module Syntax
 
       body[0] = span + body[0]
       body[-1] = body[-1] + end_span
+
       body.each do |element|
         context << element
       end
