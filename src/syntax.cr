@@ -96,7 +96,10 @@ module Syntax
     def adverb_list(context)
       adverbs = context.dup
       adverbs = adverbs.as(Array)
+
       context.clear
+      action = context.dup
+      action << "action" << "=>" << "perform_color"
 
       adverbs.each do |adverb|
         adverb = adverb[0].as(Array)
@@ -104,7 +107,7 @@ module Syntax
         case adverb[0]
         when "color", "bgcolor"
           context << adverb
-          context << ["action", "=>", "perform_color"]
+          context << action
         when "action"
         else
           context << adverb
