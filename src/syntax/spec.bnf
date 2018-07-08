@@ -22,8 +22,6 @@ alternative ::= rhs <adverb list>
 <adverb item> ::= <separator specification>
   | <proper specification>
   | <rank specification>
-  | <pause specification>
-  | <event specification>
   | <color specification>
   | <bgcolor specification>
 
@@ -31,8 +29,6 @@ alternative ::= rhs <adverb list>
   | 'separator' '=>' <single quoted string>
 <proper specification> ::= 'proper' '=>' boolean
 <rank specification> ::= 'rank' '=>' digit
-<pause specification> ::= 'pause' '=>' <before or after>
-<event specification> ::= 'event' '=>' <name>
 <color specification> ::= 'color' '=>' color 
 <bgcolor specification> ::= 'bgcolor' '=>' color 
 
