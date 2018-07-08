@@ -1,24 +1,22 @@
 require "./syntax/*"
 require "marpa"
+require "html"
 
 module Syntax
   class Highlighter
-    # Given `input` and `input_grammar`, parse input and then style with colors
-    # specified in `input_grammar`. If the input does not fully conform to the given grammar,
-    # `forgiving` can be specified to attempt to correct the given input.
-    def highlight(input : String, input_grammar : String, forgiving : Bool = false)
-      parser = Marpa::Parser.new
+    # Given `input` and `grammar`, parse input and then style with colors
+    # specified in `grammar`.
+    def highlight(input : String, grammar : String)
+      grammar = compile(grammar)
+      return highlight(input, grammar)
+    end
 
-      spec = Marpa::Builder.new
-      spec = build_spec(spec)
-
-      grammar = Grammar.new
-      parser.parse(input_grammar, spec, actions: grammar)
+    def highlight(input : String, grammar : Grammar)
       rules = grammar.rules
 
+      parser = Marpa::Parser.new
       actions = Actions.new(rules)
-      events = Events.new(forgiving)
-      stack = parser.parse(input, grammar, actions: actions, events: events)
+      stack = parser.parse(input, grammar, actions: actions)
       stack = stack.as(Array).flatten
 
       parser.values.to_a.reverse.each_with_index do |values, i|
@@ -30,23 +28,17 @@ module Syntax
 
       return input
     end
-  end
 
-  class Events < Marpa::Events
-    property forgiving
+    def compile(grammar : String)
+      parser = Marpa::Parser.new
 
-    def initialize(forgiving = true)
-      @forgiving = forgiving
-    end
+      spec = Marpa::Builder.new
+      spec = build_spec(spec)
 
-    def default(context)
-      if @forgiving
-        if context.matches.empty? && context.discards.empty?
-          context.expected.each do |expected|
-            context.matches << {"", expected}
-          end
-        end
-      end
+      builder = Grammar.new
+      parser.parse(grammar, spec, actions: builder)
+
+      return builder
     end
   end
 
@@ -58,15 +50,14 @@ module Syntax
     end
 
     def default(context)
-      body = context.dup.as(Array)
-      context.clear
+      context = context.as(Array)
 
-      body.each do |item|
+      context.map! do |item|
         case item
         when String
-          context << HTML.escape(item)
+          HTML.escape(item)
         else
-          context << item
+          item
         end
       end
 
