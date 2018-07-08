@@ -19,10 +19,27 @@ module Syntax
       stack = parser.parse(input, grammar, actions: actions)
       stack = stack.as(Array).flatten
 
-      parser.values.to_a.reverse.each_with_index do |values, i|
+      input.count('<').times do |i|
+        index = input.index("<").not_nil!
+
+        parser.values.select { |k, v| k.abs > index }.to_a.sort_by { |k, v| k.abs }.reverse.each do |k, v|
+          parser.values.delete(k)
+
+          if k >= 0
+            parser.values[k + 3] = v
+          else
+            parser.values[k - 3] = v
+          end
+        end
+
+        input = input.sub("<", "&lt;")
+      end
+
+      parser.values.to_a.sort_by { |k, v| k.abs }.reverse.each_with_index do |values, i|
         key, value = values
         key = key.abs
 
+        value = value.gsub("<", "&lt;")
         input = input.sub(key..(key + value.size - 1), stack[stack.size - i - 1])
       end
 
