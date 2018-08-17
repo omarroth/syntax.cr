@@ -11,6 +11,6 @@ describe Syntax do
     S ::= 'a' color => green
     END_BNF
 
-    highlighter.highlight("a", grammar).should eq %(<span class="code" style="background-color:inherit; color:#008000">a</span>)
+    highlighter.highlight("a", grammar).should eq %(<span style="background-color:inherit; color:#008000">a</span>)
   end
 end
