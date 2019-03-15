@@ -1,14 +1,17 @@
 name: syntax
-version: 0.1.0
+version: 0.2.0
 
 authors:
   - Omar Roth <omarroth@hotmail.com>
 
-crystal: 0.26.1
+description: |
+  Flexible syntax highlighter
+
+crystal: 0.27.2
 
 dependencies:
   marpa:
     github: omarroth/marpa
     branch: master
 
-license: MIT
+license: GPLv3
