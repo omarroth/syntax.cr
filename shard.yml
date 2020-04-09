@@ -7,11 +7,10 @@ authors:
 description: |
   Flexible syntax highlighter
 
-crystal: 0.31.0
+crystal: 0.34.0
 
 dependencies:
   marpa:
     github: omarroth/marpa
-    version: ~> 0.5.1
 
 license: GPLv3
